@@ -1,10 +1,16 @@
 import request from "supertest";
 import app from "../src/app.js";
+import User from "../src/models/User.js";
+import Task from "../src/models/Task.js";
 
 let token;
 let taskId;
 
 beforeAll(async () => {
+  // Clear test data
+  await User.deleteOne({ email: "task@example.com" });
+  await Task.deleteMany({});
+
   // Register
   await request(app)
     .post("/api/auth/register")
@@ -23,7 +29,7 @@ beforeAll(async () => {
     });
 
   token = res.body.token;
-});
+}, 30000);
 
 describe("Task Routes", () => {
 
@@ -32,7 +38,7 @@ describe("Task Routes", () => {
       .get("/api/tasks");
 
     expect(res.statusCode).toBe(401);
-  });
+  }, 10000);
 
   it("should create a task", async () => {
     const res = await request(app)
@@ -47,7 +53,7 @@ describe("Task Routes", () => {
     expect(res.body.title).toBe("Test Task");
 
     taskId = res.body._id;
-  });
+  }, 10000);
 
   it("should get user tasks only", async () => {
     const res = await request(app)
@@ -56,6 +62,6 @@ describe("Task Routes", () => {
 
     expect(res.statusCode).toBe(200);
     expect(Array.isArray(res.body)).toBe(true);
-  });
+  }, 10000);
 
 });
